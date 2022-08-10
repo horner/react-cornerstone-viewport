@@ -58,6 +58,7 @@ module.exports = (env, argv) => {
     },
     resolve: {
       modules: [path.resolve(__dirname, './../node_modules'), SRC_PATH],
+      symlinks: false,
     },
     externals: [
       // Used to build/load metadata
