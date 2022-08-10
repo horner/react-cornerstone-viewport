@@ -65,6 +65,7 @@ function wadoRsMetaDataProvider(type, imageId) {
   if (type === 'cineModule') {
     return {
       frameTime: getNumberValue(metaData['00181063']),
+      numFrames: dataSet.intString('x00280008')
     };
   }
 }
@@ -110,7 +111,8 @@ function wadoUriMetaDataProvider(type, imageId) {
 
   if (type === 'cineModule') {
     return {
-      frameTime: dataSet.float('x00181063'),
+      frameTime: dataSet.floatString('x00181063'),
+      numFrames: dataSet.intString('x00280008')
     };
   }
 

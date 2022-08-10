@@ -197,7 +197,30 @@ class CornerstoneViewport extends Component {
 
       const requestFn = (imageId, options) => {
         return cornerstone.loadAndCacheImage(imageId, options).then((image) => {
+          var cine = cornerstone.metaData.get('cineModule',image.imageId);
+
+          console.log("react-cs: loadAndCacheImage imgframeRate:",this.state,initialViewport);
           cornerstone.displayImage(this.element, image, initialViewport);
+//          if (cine.frameTime) {
+          if (true) {
+            var imageIds = [];
+            for(var i=0; i < cine.numFrames; i++) {
+                var frameurl = imageId + "?frame="+i;
+                imageIds.push(frameurl);
+            }
+            var stack = {
+              currentImageIdIndex : 0,
+              imageIds: imageIds
+            };
+            cornerstoneTools.addStackStateManager(this.element, ['stack', 'playClip']);
+            cornerstoneTools.addToolState(this.element, 'stack', stack);
+
+            this.setState({ frameRate: 1000.0 / cine.frameTime, isPlaying:false, shouldStart:true });
+            console.log("react-cs: loadAndCacheImage setState:",this.state);
+            console.log("react-cs: playClip:",this.state.frameRate)
+            debugger;
+            cornerstoneTools.playClip(this.element, this.state.frameRate);
+          }
         });
       };
 
@@ -211,6 +234,7 @@ class CornerstoneViewport extends Component {
         priority,
         addToBeginning
       );
+//      this.setState({  isPlaying:true, shouldStart:true });
 
       if (isStackPrefetchEnabled) {
         cornerstoneTools.stackPrefetch.enable(this.element);
@@ -218,6 +242,7 @@ class CornerstoneViewport extends Component {
 
       if (isPlaying) {
         const validFrameRate = Math.max(frameRate, 1);
+        console.log("react-cs: componentDidMount playClip",validFrameRate);
         cornerstoneTools.playClip(this.element, validFrameRate);
       }
 
@@ -225,6 +250,7 @@ class CornerstoneViewport extends Component {
       _trySetActiveTool(this.element, this.props.activeTool);
       this.setState({ isLoading: false });
     } catch (error) {
+      console.log("react-cs: Error:",error);
       this.setState({ error, isLoading: false });
     }
   }
@@ -262,6 +288,7 @@ class CornerstoneViewport extends Component {
       try {
         // load + display image
         const imageId = stack[imageIndex || 0];
+        console.log("react-cs: stop clip");
         cornerstoneTools.stopClip(this.element);
         const requestFn = (imageId, options) => {
           return cornerstone
@@ -321,9 +348,13 @@ class CornerstoneViewport extends Component {
     const shouldPause = isPlaying !== prevIsPlaying && !isPlaying;
     const hasFrameRateChanged = isPlaying && frameRate !== prevFrameRate;
 
+//    console.log("react-cs: ~~ CINE: frameRate",this.props.frameRate,"shouldStart",shouldStart,"hasFrameRateChanged",hasFrameRateChanged,"shouldPause",shouldPause);
+
     if (shouldStart || hasFrameRateChanged) {
+      console.log("react-cs: ~~ CINE: playClip");
       cornerstoneTools.playClip(this.element, validFrameRate);
     } else if (shouldPause) {
+      console.log("react-cs: ~~ CINE: stopClip");
       cornerstoneTools.stopClip(this.element);
     }
 
@@ -361,6 +392,7 @@ class CornerstoneViewport extends Component {
     }
 
     cornerstoneTools.clearToolState(this.element, 'stackPrefetch');
+    console.log("react-cs: stopClip");
     cornerstoneTools.stopClip(this.element);
     cornerstone.disable(this.element);
   }
